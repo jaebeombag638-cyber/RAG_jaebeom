@@ -1,0 +1,5 @@
+sentence-transformers>=5.7,<6
+elasticsearch>=8.19,<9
+openai>=2,<3
+streamlit>=1.45,<2
+python-dotenv>=1,<2

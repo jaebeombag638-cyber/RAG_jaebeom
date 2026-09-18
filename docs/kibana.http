@@ -1,0 +1,19 @@
+# Kibana > Dev Tools. Replace jeju-rag-v1 if ES_INDEX changed.
+GET /
+
+GET /_license
+
+GET /jeju-rag-v1/_mapping
+
+GET /jeju-rag-v1/_count
+
+GET /jeju-rag-v1/_search
+{
+  "size": 3,
+  "_source": {"excludes": ["vector"]},
+  "query": {"match": {"text": "투빅커피"}}
+}
+
+# The actual 1024-dimensional RRF request is written to
+# artifacts/kibana_search.http when you submit a question.
+# Paste that full file into Dev Tools. Do not use placeholder vectors.

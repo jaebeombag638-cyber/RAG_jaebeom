@@ -1,0 +1,9 @@
+.venv/
+.cache/
+__pycache__/
+.env
+.env.*
+!.env.example
+*.backup_*
+data/
+artifacts/
