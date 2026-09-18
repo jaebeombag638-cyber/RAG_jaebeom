@@ -1,5 +1,6 @@
 sentence-transformers>=5.7,<6
-elasticsearch>=8.19,<9
-openai>=2,<3
+elasticsearch>=9.5,<9.6
+langchain-core>=1,<2
+langchain-openai>=1,<2
 streamlit>=1.45,<2
 python-dotenv>=1,<2

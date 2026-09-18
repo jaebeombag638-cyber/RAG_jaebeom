@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import streamlit as st
 
 from embedding import ROOT
-from rag import ARTIFACTS, answer
+from rag import ARTIFACTS, INSTRUCTIONS, answer
 
 st.set_page_config(page_title="제주 상점 RAG 실습", layout="wide")
 st.title("제주 상점 RAG 실습")
@@ -50,6 +50,7 @@ if "result" in st.session_state:
             st.text(doc["text"])
             st.caption(f"{doc['source']} · {doc['source_line']}행 · RRF 점수 {doc['rrf_score']}")
     with st.expander("학습용: LLM에 전달하는 질문과 근거"):
+        st.text(INSTRUCTIONS)
         st.code(result["prompt"], language="json")
     quality = st.selectbox("답변과 근거를 비교한 결과", ["미검토", "근거와 일치", "수정 필요"])
     note = st.text_input("검토 메모")

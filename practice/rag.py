@@ -5,7 +5,9 @@ import re
 from time import perf_counter
 
 from elasticsearch import Elasticsearch
-from openai import OpenAI
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
 
 from embedding import DIMS, MODEL_ID, ROOT, embed
 
@@ -23,6 +25,8 @@ def es_client():
     options = {"request_timeout": 60}
     if os.getenv("ES_API_KEY"):
         options["api_key"] = os.environ["ES_API_KEY"]
+    elif os.getenv("ES_USERNAME") and os.getenv("ES_PASSWORD"):
+        options["basic_auth"] = (os.environ["ES_USERNAME"], os.environ["ES_PASSWORD"])
     if os.getenv("ES_CA_CERT"):
         options["ca_certs"] = os.environ["ES_CA_CERT"]
     return Elasticsearch(os.getenv("ES_URL", "http://localhost:9200"), **options)
@@ -60,7 +64,10 @@ def retrieve(question):
     ARTIFACTS.mkdir(exist_ok=True)
     (ARTIFACTS / "kibana_search.http").write_text(
         f"GET /{INDEX}/_search\n" + json.dumps(body, ensure_ascii=False, indent=2), encoding="utf-8")
-    hits = client.search(index=INDEX, body=body)["hits"]["hits"]
+    response = client.search(index=INDEX, body=body)
+    if response.get("timed_out") or response.get("_shards", {}).get("failed", 0):
+        raise ValueError("검색이 시간 초과되었거나 일부 샤드에서 실패했습니다.")
+    hits = response["hits"]["hits"]
     return question, [{**h["_source"], "rrf_score": h["_score"]} for h in hits], meta
 
 
@@ -84,10 +91,13 @@ def answer(question, generate=False):
         key = os.getenv("OPENAI_API_KEY", "").strip()
         if not key:
             raise ValueError(".env의 OPENAI_API_KEY를 입력한 뒤 답변 생성을 켜세요.")
-        response = OpenAI(api_key=key, timeout=60, max_retries=1).responses.create(
-            model=os.getenv("ANSWER_MODEL", "gpt-4.1-mini"), instructions=INSTRUCTIONS,
-            input=prompt, max_output_tokens=800, store=False)
-        text, status = response.output_text, "generated"
+        template = ChatPromptTemplate.from_messages([
+            ("system", INSTRUCTIONS), ("human", "{evidence_input}")])
+        model = ChatOpenAI(api_key=key, model=os.getenv("ANSWER_MODEL", "gpt-4.1-mini"),
+                           timeout=60, max_retries=1, max_tokens=800,
+                           use_responses_api=True, store=False)
+        chain = template | model | StrOutputParser()
+        text, status = chain.invoke({"evidence_input": prompt}), "generated"
         if not text.strip():
             raise ValueError("모델이 빈 답변을 반환했습니다.")
     numbers = [int(n) for n in re.findall(r"\[(\d+)\]", text)]

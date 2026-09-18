@@ -1,4 +1,4 @@
-"""기존 실습의 BGE-M3 CPU 임베딩을 동기 함수로 단순화한다."""
+"""BGE-M3 CPU 모델을 재사용하여 문서와 질문을 임베딩한다."""
 import os
 from functools import lru_cache
 from pathlib import Path

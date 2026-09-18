@@ -1,5 +1,6 @@
 .venv/
 .cache/
+.certs/
 __pycache__/
 .env
 .env.*

@@ -1,4 +1,8 @@
-# Kibana > Dev Tools. Replace jeju-rag-v1 if ES_INDEX changed.
+# ES/Kibana 9.5.3 > Dev Tools. Replace jeju-rag-v1 if ES_INDEX changed.
+# First generate artifacts/kibana_create.http using:
+# python practice/ingest.py --write-mapping --limit 100
+# Review and run that file here, then run Python ingestion with the same limit.
+# Do not recreate or delete an existing index without checking its purpose.
 GET /
 
 GET /_license
